@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Main from "./pages/Main";
+import { GlobalContextProvider } from "./context/DefaultContext";
+import ProductExelUpload from "./pages/ProductExelUpload";
+import ProductList from "./pages/ProductList";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <GlobalContextProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route
+            path="/eff179b5-a575-4046-99f3-ca0dc465af3e"
+            element={<Main children={<ProductList />} />}
+          />
+          <Route
+            path="/ed4599ce-5808-462c-b10f-3eee0df54dd1"
+            element={<Main children={<ProductExelUpload />} />}
+          />
+        </Routes>
+      </BrowserRouter>
+    </GlobalContextProvider>
   );
 }
 
