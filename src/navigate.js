@@ -79,7 +79,7 @@ export const navigateMenus = [
     level: 2,
   },
   {
-    label: "자산내용",
+    label: "대표견적",
     parentKey: "assetManager",
     key: "child11",
     link: "/8e4314e1-ec72-47b5-84e2-114a5e7a697a",
@@ -87,7 +87,7 @@ export const navigateMenus = [
     level: 3,
   },
   {
-    label: "자산수정",
+    label: "대표견적",
     parentKey: "assetManager",
     key: "child12",
     link: "/337a93f8-ff79-4ce9-95a7-6b041bb418f6",
