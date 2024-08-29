@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Button, List, Select, message } from "antd";
+
 import { useLocation } from "react-router-dom";
 import { estimateTemplates } from "../commons/QuoteTemplate";
 import { fieldMapping, fieldOrder } from "../commons/fieldConfig";
@@ -8,8 +9,8 @@ import FormField from "../components/standardQuote/FormField";
 import { CopyButton, AddFieldButton } from "../components/ActionButton";
 import {
   useFirestoreAddData,
-  useFirestoreUpdateData,
   useFirestoreGetDocument,
+  useFirestoreDeleteData,
 } from "../hooks/useFirestore";
 
 const { Option } = Select;
@@ -25,7 +26,7 @@ const CreateStandardQuote = () => {
   const [isEdit, setIsEdit] = useState(location.state?.isEdit);
 
   const { addData } = useFirestoreAddData();
-  const { updateData } = useFirestoreUpdateData();
+  const { deleteData } = useFirestoreDeleteData();
   const { getDocument } = useFirestoreGetDocument();
 
   const mapDataToFields = (data) => {
@@ -36,7 +37,7 @@ const CreateStandardQuote = () => {
       if (key !== "refProductId" && key !== "imgUrl") {
         mappedData[key] = {
           value: removeQuotes(data[key].value),
-          order: data[key].order || 100, // 기본 order를 100으로 설정
+          order: data[key].order, // 기본 order를 100으로 설정
         };
         delete additionalFields[key];
       }
@@ -49,9 +50,13 @@ const CreateStandardQuote = () => {
     if (editMode && editId) {
       try {
         await getDocument("standard_quote", editId, (data) => {
-          const { mappedData, additionalFields } = mapDataToFields(data);
+          const deletedIdData = { ...data };
+          delete deletedIdData.id;
+          const { mappedData, additionalFields } =
+            mapDataToFields(deletedIdData);
 
-          const templateFieldsData = Object.keys(mappedData)
+          console.log(mappedData);
+          let templateFieldsData = Object.keys(mappedData)
             .sort((a, b) => mappedData[a].order - mappedData[b].order)
             .map((key) => ({
               key,
@@ -61,14 +66,17 @@ const CreateStandardQuote = () => {
               order: mappedData[key].order,
             }));
 
-          //id필드 삭제부터 다시 시작해야함
-          delete mappedData.id;
-          console.log(mappedData);
-          setFormData(() => mappedData);
+          setFormData(mappedData);
           setExtraFields({
             ...location.state.description[0],
             ...additionalFields,
           });
+
+          // 여기서 templateFields를 정렬합니다.
+          templateFieldsData = templateFieldsData.sort(
+            (a, b) => a.order - b.order
+          );
+
           setTemplateFields(templateFieldsData);
         });
       } catch (error) {
@@ -83,31 +91,33 @@ const CreateStandardQuote = () => {
         initialData["모델명"]
       );
 
-      // fieldMapping에 매핑된 내용만 템플릿 필드에 포함
-
       const mappedData = {
         brand: {
           value: adjustedNames.brand,
-          order: 1,
+          order: 0, // 초기 order 설정
         },
         model: {
           value: adjustedNames.model,
-          order: 2,
+          order: 1, // 초기 order 설정
         },
       };
 
-      // fieldMapping을 통해 매핑된 값 처리
-      Object.keys(fieldMapping).forEach((key, index) => {
-        // model이 아닌 경우에만 매핑 처리
+      // fieldMapping을 통해 매핑된 필드 추가
+      Object.keys(fieldMapping).forEach((key) => {
         if (key !== "모델명" && initialData[key]) {
           mappedData[key] = {
             value: removeQuotes(initialData[key]),
-            order: index + 3,
+            order: fieldOrder.indexOf(key) + 2, // order 값 재설정
           };
         }
       });
 
-      // remaining fields in description that are not mapped
+      // order 값을 기반으로 정렬
+      const sortedFields = Object.keys(mappedData).sort(
+        (a, b) => mappedData[a].order - mappedData[b].order
+      );
+
+      // 추가 필드를 정리
       const additionalFields = Object.keys(initialData).reduce(
         (result, key) => {
           if (!Object.values(fieldMapping).includes(key)) {
@@ -118,21 +128,23 @@ const CreateStandardQuote = () => {
         {}
       );
 
+      // templateFields 설정
+      const templateFieldsData = sortedFields.map((key, index) => ({
+        key,
+        label: estimateTemplates[selectedTemplate][key]?.[language] || key,
+        value: mappedData[key]?.value || "",
+        order: index,
+      }));
+
       setFormData(mappedData);
       setExtraFields(additionalFields);
-      setTemplateFields(
-        Object.keys(mappedData).map((key) => ({
-          key,
-          label: estimateTemplates[selectedTemplate][key]?.[language] || key,
-          value: mappedData[key]?.value || "",
-          order: mappedData[key]?.order || fieldOrder.length,
-        }))
-      );
+      setTemplateFields(templateFieldsData);
     }
   };
 
   useEffect(() => {
     initializeData(isEdit, location.state?.quoteId);
+    setQuoteId(location.state?.quoteId);
   }, [isEdit, location.state?.quoteId]);
 
   const handleInputChange = (key, value) => {
@@ -170,13 +182,18 @@ const CreateStandardQuote = () => {
   };
 
   const handleDeleteField = (key) => {
+    // 템플릿 필드에서 해당 필드를 제거
     setTemplateFields((prevFields) =>
       prevFields.filter((field) => field.key !== key)
     );
-    setFormData((prevFormData) => {
-      const { [key]: _, ...rest } = prevFormData;
-      return rest;
-    });
+
+    const updatedFormData = { ...formData };
+    delete updatedFormData[key];
+
+    // formData에서 해당 필드를 제거
+    setFormData(
+      () => updatedFormData // 업데이트된 formData 반환
+    );
   };
 
   const moveField = (index, direction) => {
@@ -184,11 +201,20 @@ const CreateStandardQuote = () => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
 
     if (targetIndex >= 0 && targetIndex < updatedFields.length) {
+      // 필드의 순서를 교환
       [updatedFields[targetIndex], updatedFields[index]] = [
         updatedFields[index],
         updatedFields[targetIndex],
       ];
-      setTemplateFields(updatedFields);
+
+      // 모든 필드의 order 속성을 인덱스 기반으로 다시 설정
+      const reorderedFields = updatedFields.map((field, idx) => ({
+        ...field,
+        order: idx,
+      }));
+
+      // 상태 업데이트
+      setTemplateFields(reorderedFields);
     }
   };
 
@@ -200,15 +226,18 @@ const CreateStandardQuote = () => {
 
     try {
       if (isEdit && id) {
-        await updateData(
+        // 기존 문서 삭제
+        await deleteData("standard_quote", id);
+        await addData(
           "standard_quote",
-          id,
           { ...dataToSubmit, refProductId, imgUrl },
-          () => {
+          (data) => {
+            setQuoteId(data.id);
             message.success("데이터가 성공적으로 업데이트되었습니다.");
           }
         );
       } else {
+        // 신규 데이터 추가
         await addData(
           "standard_quote",
           { ...dataToSubmit, refProductId, imgUrl },
@@ -227,7 +256,7 @@ const CreateStandardQuote = () => {
     const dataToSubmit = templateFields.reduce((result, field) => {
       result[field.key] = {
         value: formData[field.key]?.value || "",
-        order: formData[field.key]?.order || fieldOrder.length,
+        order: field.order, // 기존 order 값을 그대로 유지
       };
       return result;
     }, {});
@@ -239,6 +268,7 @@ const CreateStandardQuote = () => {
       location?.state?.description[0]?.검색모델img || ""
     );
   };
+
   return (
     <div style={{ padding: "20px" }}>
       <Row justify="end" style={{ marginBottom: "20px" }}>
@@ -296,16 +326,15 @@ const CreateStandardQuote = () => {
             renderItem={(key) => (
               <List.Item style={{ cursor: "pointer" }}>
                 <Row style={{ width: "100%" }}>
-                  <Col span={14}>
+                  <Col span={18}>
                     <strong>{key}:</strong> {extraFields[key]}
                   </Col>
-                  <Col span={5}>
+
+                  <Col span={6}>
                     <CopyButton
                       text={extraFields[key]}
                       onCopy={handleCopyToClipboard}
                     />
-                  </Col>
-                  <Col span={5}>
                     <AddFieldButton
                       onAdd={handleAddField}
                       fieldKey={key}
