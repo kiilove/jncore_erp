@@ -7,6 +7,8 @@ import ProductList from "./pages/ProductList";
 import CreateStandardQuote from "./pages/CreateStandardQuote";
 import EditStandardQuote from "./pages/EditStandardQuote";
 import CompanyInfo from "./pages/CompanyInfo";
+import ClientExelUpload from "./pages/ClientExelUpload";
+import ClientList from "./pages/ClientList";
 
 function App() {
   return (
@@ -33,6 +35,14 @@ function App() {
           <Route
             path="/c91b9c9b-cc95-4605-be48-5a359a4e100a"
             element={<Main children={<CompanyInfo />} />}
+          />
+          <Route
+            path="/53738752-4a62-4aa0-8909-de473cd5b2a8"
+            element={<Main children={<ClientExelUpload />} />}
+          />{" "}
+          <Route
+            path="/7bbef8fb-ab26-4969-a633-0ad164fc63d2"
+            element={<Main children={<ClientList />} />}
           />
         </Routes>
       </BrowserRouter>
