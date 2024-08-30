@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, message, Spin, Input } from "antd";
+import { useNavigate } from "react-router-dom";
 import {
-  getFirestore,
   collection,
   query,
   orderBy,
@@ -21,6 +21,8 @@ const ClientList = () => {
   const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 번호
   const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태
   const pageSize = 10; // 페이지당 데이터 수
+
+  const navigate = useNavigate(); // useNavigate 훅 추가
 
   // 전체 문서 수를 가져오는 함수
   const fetchTotalCount = async (search = "") => {
@@ -110,6 +112,17 @@ const ClientList = () => {
       title: "거래처상호",
       dataIndex: "거래처상호",
       key: "거래처상호",
+      render: (text, record) => (
+        <a
+          onClick={() =>
+            navigate("/5994c397-ba14-4595-a142-6ed2e76bb822", {
+              state: { clientInfo: record },
+            })
+          }
+        >
+          {text}
+        </a>
+      ),
     },
     {
       title: "대표자명",

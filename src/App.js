@@ -9,6 +9,7 @@ import EditStandardQuote from "./pages/EditStandardQuote";
 import CompanyInfo from "./pages/CompanyInfo";
 import ClientExelUpload from "./pages/ClientExelUpload";
 import ClientList from "./pages/ClientList";
+import ClientInfo from "./pages/ClientInfo";
 
 function App() {
   return (
@@ -43,6 +44,10 @@ function App() {
           <Route
             path="/7bbef8fb-ab26-4969-a633-0ad164fc63d2"
             element={<Main children={<ClientList />} />}
+          />
+          <Route
+            path="/5994c397-ba14-4595-a142-6ed2e76bb822"
+            element={<Main children={<ClientInfo />} />}
           />
         </Routes>
       </BrowserRouter>

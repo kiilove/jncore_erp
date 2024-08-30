@@ -61,6 +61,14 @@ export const navigateMenus = [
     level: 2,
   },
   {
+    label: "고객사정보",
+    parentKey: "clients",
+    key: "sub51",
+    link: "/5994c397-ba14-4595-a142-6ed2e76bb822",
+    index: 81,
+    level: 0,
+  },
+  {
     label: "엑셀저장",
     parentKey: "clients",
     key: "sub52",

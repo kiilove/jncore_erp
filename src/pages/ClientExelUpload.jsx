@@ -90,7 +90,7 @@ const ClientExcelUpload = () => {
             전화번호: row["전화번호"],
             휴대전화번호: row["휴대전화번호"],
             팩스번호: row["팩스번호"],
-            이메일: row["이메일 주소"],
+            이메일: row["이메일주소"],
           });
 
           if (existingIndex !== -1) {
