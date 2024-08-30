@@ -53,10 +53,10 @@ export const navigateMenus = [
     icon: <TbReportAnalytics />,
   },
   {
-    label: "환경설정",
+    label: "회사정보",
     parentKey: "home",
-    key: "settings",
-    link: "/f8119f14-43bf-4b3b-906a-ed77be4bab3c",
+    key: "companyInfo",
+    link: "/c91b9c9b-cc95-4605-be48-5a359a4e100a",
     index: 5,
     level: 1,
     icon: <IoSettingsOutline />,

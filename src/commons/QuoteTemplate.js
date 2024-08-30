@@ -2,7 +2,7 @@
 const commonFields = {
   brand: { ko: "제조사", en: "Brand" },
   model: { ko: "모델명", en: "Model" },
-  price: { ko: "가격", en: "Price" },
+  price: { ko: "입고가", en: "Price" },
   os: { ko: "운영체제", en: "Operating System" },
   warranty: { ko: "보증기간", en: "Warranty" },
 };
@@ -14,7 +14,7 @@ const laptopTemplate = {
   cpu: { ko: "프로세서", en: "CPU" }, // 예: Intel i7, AMD Ryzen 7
   gpu: { ko: "그래픽프로세서", en: "GPU" }, // 예: NVIDIA RTX 3060
   ram: { ko: "메모리", en: "RAM" }, // 예: 16GB
-  storage: { ko: "저장장치", en: "Storage" }, // 예: 512GB SSD
+  storage: { ko: "스토리지", en: "Storage" }, // 예: 512GB SSD
   battery: { ko: "배터리", en: "Battery" }, // 예: 8시간
   weight: { ko: "무게", en: "Weight" }, // 예: 1.3kg
   resolution: { ko: "해상도", en: "Resolution" }, // 예: 1920x1080

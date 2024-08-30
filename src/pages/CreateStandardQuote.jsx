@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Button, List, Select, message } from "antd";
-
 import { useLocation } from "react-router-dom";
-import { estimateTemplates } from "../commons/QuoteTemplate";
-import { fieldMapping, fieldOrder } from "../commons/fieldConfig";
-import { removeQuotes, adjustModelName } from "../utils/utils";
 import FormField from "../components/standardQuote/FormField";
 import { CopyButton, AddFieldButton } from "../components/ActionButton";
 import {
@@ -12,6 +8,9 @@ import {
   useFirestoreGetDocument,
   useFirestoreDeleteData,
 } from "../hooks/useFirestore";
+import { initializeTemplateFields } from "../utils/initializeTemplateFields";
+import { removeQuotes } from "../utils/utils";
+import { estimateTemplates } from "../commons/QuoteTemplate";
 
 const { Option } = Select;
 
@@ -37,7 +36,7 @@ const CreateStandardQuote = () => {
       if (key !== "refProductId" && key !== "imgUrl") {
         mappedData[key] = {
           value: removeQuotes(data[key].value),
-          order: data[key].order, // 기본 order를 100으로 설정
+          order: data[key].order,
         };
         delete additionalFields[key];
       }
@@ -45,7 +44,6 @@ const CreateStandardQuote = () => {
 
     return { mappedData, additionalFields };
   };
-
   const initializeData = async (editMode, editId) => {
     if (editMode && editId) {
       try {
@@ -55,7 +53,6 @@ const CreateStandardQuote = () => {
           const { mappedData, additionalFields } =
             mapDataToFields(deletedIdData);
 
-          console.log(mappedData);
           let templateFieldsData = Object.keys(mappedData)
             .sort((a, b) => mappedData[a].order - mappedData[b].order)
             .map((key) => ({
@@ -72,7 +69,6 @@ const CreateStandardQuote = () => {
             ...additionalFields,
           });
 
-          // 여기서 templateFields를 정렬합니다.
           templateFieldsData = templateFieldsData.sort(
             (a, b) => a.order - b.order
           );
@@ -86,66 +82,20 @@ const CreateStandardQuote = () => {
     } else if (location.state?.description[0]) {
       const initialData = location.state.description[0];
 
-      const adjustedNames = adjustModelName(
-        initialData["검색모델명"],
-        initialData["모델명"]
-      );
+      const { mappedData, additionalFields, templateFields } =
+        initializeTemplateFields(initialData, selectedTemplate, language);
 
-      const mappedData = {
-        brand: {
-          value: adjustedNames.brand,
-          order: 0, // 초기 order 설정
-        },
-        model: {
-          value: adjustedNames.model,
-          order: 1, // 초기 order 설정
-        },
-      };
-
-      // fieldMapping을 통해 매핑된 필드 추가
-      Object.keys(fieldMapping).forEach((key) => {
-        if (key !== "모델명" && initialData[key]) {
-          mappedData[key] = {
-            value: removeQuotes(initialData[key]),
-            order: fieldOrder.indexOf(key) + 2, // order 값 재설정
-          };
-        }
-      });
-
-      // order 값을 기반으로 정렬
-      const sortedFields = Object.keys(mappedData).sort(
-        (a, b) => mappedData[a].order - mappedData[b].order
-      );
-
-      // 추가 필드를 정리
-      const additionalFields = Object.keys(initialData).reduce(
-        (result, key) => {
-          if (!Object.values(fieldMapping).includes(key)) {
-            result[key] = initialData[key];
-          }
-          return result;
-        },
-        {}
-      );
-
-      // templateFields 설정
-      const templateFieldsData = sortedFields.map((key, index) => ({
-        key,
-        label: estimateTemplates[selectedTemplate][key]?.[language] || key,
-        value: mappedData[key]?.value || "",
-        order: index,
-      }));
-
+      console.log(mappedData);
       setFormData(mappedData);
       setExtraFields(additionalFields);
-      setTemplateFields(templateFieldsData);
+      setTemplateFields(templateFields);
     }
   };
 
   useEffect(() => {
     initializeData(isEdit, location.state?.quoteId);
     setQuoteId(location.state?.quoteId);
-  }, [isEdit, location.state?.quoteId]);
+  }, [isEdit, selectedTemplate, language, location.state?.quoteId]);
 
   const handleInputChange = (key, value) => {
     setFormData((prevFormData) => ({
@@ -182,7 +132,6 @@ const CreateStandardQuote = () => {
   };
 
   const handleDeleteField = (key) => {
-    // 템플릿 필드에서 해당 필드를 제거
     setTemplateFields((prevFields) =>
       prevFields.filter((field) => field.key !== key)
     );
@@ -190,10 +139,7 @@ const CreateStandardQuote = () => {
     const updatedFormData = { ...formData };
     delete updatedFormData[key];
 
-    // formData에서 해당 필드를 제거
-    setFormData(
-      () => updatedFormData // 업데이트된 formData 반환
-    );
+    setFormData(() => updatedFormData);
   };
 
   const moveField = (index, direction) => {
@@ -201,19 +147,16 @@ const CreateStandardQuote = () => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
 
     if (targetIndex >= 0 && targetIndex < updatedFields.length) {
-      // 필드의 순서를 교환
       [updatedFields[targetIndex], updatedFields[index]] = [
         updatedFields[index],
         updatedFields[targetIndex],
       ];
 
-      // 모든 필드의 order 속성을 인덱스 기반으로 다시 설정
       const reorderedFields = updatedFields.map((field, idx) => ({
         ...field,
         order: idx,
       }));
 
-      // 상태 업데이트
       setTemplateFields(reorderedFields);
     }
   };
@@ -226,7 +169,6 @@ const CreateStandardQuote = () => {
 
     try {
       if (isEdit && id) {
-        // 기존 문서 삭제
         await deleteData("standard_quote", id);
         await addData(
           "standard_quote",
@@ -237,7 +179,6 @@ const CreateStandardQuote = () => {
           }
         );
       } else {
-        // 신규 데이터 추가
         await addData(
           "standard_quote",
           { ...dataToSubmit, refProductId, imgUrl },
@@ -256,7 +197,7 @@ const CreateStandardQuote = () => {
     const dataToSubmit = templateFields.reduce((result, field) => {
       result[field.key] = {
         value: formData[field.key]?.value || "",
-        order: field.order, // 기존 order 값을 그대로 유지
+        order: field.order,
       };
       return result;
     }, {});

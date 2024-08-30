@@ -24,14 +24,14 @@ const ProductExcelUpload = () => {
     "제품종류",
     "제품제조사",
     "모델명",
-    "입고가",
-    "재고",
-    "CPU",
-    "스토리지",
-    "메모리",
-    "GPU",
-    "Display",
-    "OS",
+    "price",
+    "stock",
+    "cpu",
+    "storage",
+    "ram",
+    "gpu",
+    "display",
+    "os",
   ];
 
   const handleFileUpload = ({ file }) => {
@@ -110,22 +110,30 @@ const ProductExcelUpload = () => {
           () => {},
           [where("uuid", "==", selectedProduct.UUID)]
         );
-        console.log(selectedProduct.UUID);
-        console.log(existingProduct);
+
+        // undefined 값들을 ""로 대체
+        const sanitizedProduct = Object.keys(selectedProduct).reduce(
+          (acc, key) => {
+            acc[key] =
+              selectedProduct[key] !== undefined ? selectedProduct[key] : "";
+            return acc;
+          },
+          {}
+        );
 
         if (existingProduct?.length > 0) {
           // 이미 존재하는 제품이 있으면 입고가와 재고만 업데이트
           const productId = existingProduct[0].id;
           await updateData("products", productId, {
-            입고가: selectedProduct["입고가"],
-            재고: selectedProduct["재고"],
+            price: selectedProduct["price"],
+            stock: selectedProduct["price"],
           });
           message.success(`${selectedProduct["모델명"]} 업데이트 완료`);
         } else {
           // 존재하지 않으면 전체 데이터를 Firestore에 추가
-          console.log("first");
-          await addData("products", selectedProduct); // 선택된 전체 데이터 저장
-          message.success(`${selectedProduct["모델명"]} 추가 완료`);
+          await addData("products", sanitizedProduct, (data, err) => {
+            message.success(`${sanitizedProduct["모델명"]} 추가 완료`);
+          }); // 선택된 전체 데이터 저장
         }
       } catch (error) {
         message.error("저장 중 오류가 발생했습니다.");

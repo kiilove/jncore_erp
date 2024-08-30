@@ -27,8 +27,20 @@ export const initializeTemplateFields = (
     };
   }
 
+  console.log("initialData:", initialData);
   Object.keys(initialData).forEach((firestoreKey) => {
-    const templateKey = fieldMapping[firestoreKey];
+    console.log("firestoreKey:", firestoreKey);
+
+    // 템플릿에서 필드 매핑을 가져옴
+    console.log(estimateTemplates[selectedTemplate]);
+    const templateKey = Object.keys(estimateTemplates[selectedTemplate]).find(
+      (key) =>
+        estimateTemplates[selectedTemplate][key].ko === firestoreKey ||
+        estimateTemplates[selectedTemplate][key].en === firestoreKey
+    );
+
+    console.log("templateKey:", templateKey);
+
     if (templateKey && initialData[firestoreKey] !== "") {
       if (!(templateKey === "model" && mappedData["model"])) {
         mappedData[templateKey] = {

@@ -1,25 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Card, Spin, message, Button } from "antd";
-import { useNavigate } from "react-router-dom"; // 페이지 이동을 위한 useNavigate 사용
-import { useFirestoreQuery } from "../hooks/useFirestore"; // Firestore 커스텀 훅
+import { Row, Col, Card, Spin, message, Button, Input, Select } from "antd";
+import { useNavigate } from "react-router-dom";
+import { useFirestoreQuery } from "../hooks/useFirestore";
+import ProductCard from "../components/ProductCard";
 
 const { Meta } = Card;
+const { Search } = Input;
+const { Option } = Select;
 
 const ProductList = () => {
-  const fetchProducts = useFirestoreQuery(); // Firestore 훅을 사용해 데이터 함수 불러오기
+  const fetchProducts = useFirestoreQuery();
   const fetchStandardQuote = useFirestoreQuery();
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // 필터링된 제품 상태
+  const [modelGroups, setModelGroups] = useState([]); // 모델 그룹 상태
   const [standardQuote, setStandardQuote] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [sortOption, setSortOption] = useState("name");
+  const [selectedGroup, setSelectedGroup] = useState(null); // 선택된 그룹
 
-  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅 사용
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     setLoading(true);
     try {
       await fetchProducts.getDocuments("products", async (data) => {
         setProducts(data);
+        setFilteredProducts(data); // 필터링된 제품 초기화
+
+        // 모델명_검색어 필드를 기준으로 그룹 생성 후 이름 역순으로 정렬
+        const groups = Array.from(
+          new Set(data.map((product) => product.모델명_검색어))
+        ).sort((a, b) => b.localeCompare(a));
+        setModelGroups(groups);
+
         await fetchStandardQuote.getDocuments("standard_quote", (quoteData) => {
           setStandardQuote(quoteData);
           setError(null);
@@ -34,10 +50,55 @@ const ProductList = () => {
   };
 
   useEffect(() => {
-    fetchData(); // Firestore에서 데이터를 가져오는 함수
+    fetchData();
   }, []);
 
-  // 페이지 이동 함수
+  const handleSearch = (value) => {
+    setSearchText(value);
+    applyFilters(value, selectedGroup, sortOption);
+  };
+
+  const handleSort = (value) => {
+    setSortOption(value);
+    applyFilters(searchText, selectedGroup, value);
+  };
+
+  const handleGroupSelect = (value) => {
+    setSelectedGroup(value);
+    applyFilters(searchText, value, sortOption);
+  };
+
+  // 검색, 그룹 선택, 정렬 필터를 적용하는 함수
+  const applyFilters = (search, group, sort) => {
+    let filtered = products;
+
+    // 그룹 필터 적용
+    if (group) {
+      filtered = filtered.filter((product) => product.모델명_검색어 === group);
+    }
+
+    // 검색 필터 적용
+    if (search) {
+      filtered = filtered.filter((product) =>
+        product.모델명.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // 정렬 필터 적용
+    filtered = filtered.sort((a, b) => {
+      if (sort === "name") {
+        return a.모델명.localeCompare(b.모델명);
+      } else if (sort === "priceLowHigh") {
+        return a.입고가 - b.입고가;
+      } else if (sort === "priceHighLow") {
+        return b.입고가 - a.입고가;
+      }
+      return 0;
+    });
+
+    setFilteredProducts(filtered);
+  };
+
   const handleNavigate = (product, isEdit = false, quoteId = null) => {
     navigate("/8e4314e1-ec72-47b5-84e2-114a5e7a697a", {
       state: {
@@ -45,7 +106,7 @@ const ProductList = () => {
         modelName: product.모델명,
         description: products.filter((f) => f.id === product.id),
         isEdit,
-        quoteId, // quoteId 전달
+        quoteId,
       },
     });
   };
@@ -60,8 +121,43 @@ const ProductList = () => {
 
   return (
     <div style={{ padding: "20px" }}>
+      <Row gutter={[16, 16]} style={{ marginBottom: "20px" }}>
+        <Col span={8}>
+          <Search
+            placeholder="제품명을 검색하세요"
+            onSearch={handleSearch}
+            enterButton
+          />
+        </Col>
+        <Col span={8}>
+          <Select
+            placeholder="모델 그룹 선택"
+            style={{ width: "100%" }}
+            onChange={handleGroupSelect}
+            allowClear
+          >
+            {modelGroups.map((group) => (
+              <Option key={group} value={group}>
+                {group}
+              </Option>
+            ))}
+          </Select>
+        </Col>
+        <Col span={8}>
+          <Select
+            defaultValue="name"
+            style={{ width: "100%" }}
+            onChange={handleSort}
+          >
+            <Option value="name">이름순 정렬</Option>
+            <Option value="priceLowHigh">가격 낮은 순</Option>
+            <Option value="priceHighLow">가격 높은 순</Option>
+          </Select>
+        </Col>
+      </Row>
+
       <Row gutter={[16, 16]}>
-        {products.map((product) => {
+        {filteredProducts.map((product) => {
           const existingQuote = standardQuote.find(
             (quote) => quote.refProductId === product.id
           );
@@ -75,7 +171,7 @@ const ProductList = () => {
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
-                      height: "300px", // 이미지 영역 높이
+                      height: "300px",
                     }}
                   >
                     <img

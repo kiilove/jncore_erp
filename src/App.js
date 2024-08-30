@@ -6,6 +6,7 @@ import ProductExelUpload from "./pages/ProductExelUpload";
 import ProductList from "./pages/ProductList";
 import CreateStandardQuote from "./pages/CreateStandardQuote";
 import EditStandardQuote from "./pages/EditStandardQuote";
+import CompanyInfo from "./pages/CompanyInfo";
 
 function App() {
   return (
@@ -28,6 +29,10 @@ function App() {
           <Route
             path="/337a93f8-ff79-4ce9-95a7-6b041bb41"
             element={<Main children={<EditStandardQuote />} />}
+          />
+          <Route
+            path="/c91b9c9b-cc95-4605-be48-5a359a4e100a"
+            element={<Main children={<CompanyInfo />} />}
           />
         </Routes>
       </BrowserRouter>
