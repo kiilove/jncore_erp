@@ -85,7 +85,6 @@ const CreateStandardQuote = () => {
       const { mappedData, additionalFields, templateFields } =
         initializeTemplateFields(initialData, selectedTemplate, language);
 
-      console.log(mappedData);
       setFormData(mappedData);
       setExtraFields(additionalFields);
       setTemplateFields(templateFields);
@@ -161,7 +160,14 @@ const CreateStandardQuote = () => {
     }
   };
 
-  const handleSave = async (id, dataToSubmit, refProductId, imgUrl) => {
+  const handleSave = async (
+    id,
+    dataToSubmit,
+    refProductId,
+    imgUrl,
+    productType = "",
+    searchKeyword = ""
+  ) => {
     if (!dataToSubmit || !refProductId || !imgUrl) {
       message.error("필수 정보가 누락되었습니다. 모든 필드를 확인하세요.");
       return;
@@ -172,7 +178,13 @@ const CreateStandardQuote = () => {
         await deleteData("standard_quote", id);
         await addData(
           "standard_quote",
-          { ...dataToSubmit, refProductId, imgUrl },
+          {
+            ...dataToSubmit,
+            refProductId,
+            imgUrl,
+            타입: productType,
+            searchKeyword,
+          },
           (data) => {
             setQuoteId(data.id);
             message.success("데이터가 성공적으로 업데이트되었습니다.");
@@ -181,7 +193,13 @@ const CreateStandardQuote = () => {
       } else {
         await addData(
           "standard_quote",
-          { ...dataToSubmit, refProductId, imgUrl },
+          {
+            ...dataToSubmit,
+            refProductId,
+            imgUrl,
+            타입: productType,
+            searchKeyword,
+          },
           () => {
             message.success("데이터가 성공적으로 저장되었습니다.");
           }
@@ -202,11 +220,17 @@ const CreateStandardQuote = () => {
       return result;
     }, {});
 
+    const searchKeyword = Object.values(dataToSubmit)
+      .map((item) => item.value)
+      .join(" ");
+
     handleSave(
       quoteId,
       dataToSubmit,
       location?.state?.description[0]?.id,
-      location?.state?.description[0]?.검색모델img || ""
+      location?.state?.description[0]?.검색모델img || "",
+      location?.state?.description[0]?.타입 || "",
+      searchKeyword
     );
   };
 

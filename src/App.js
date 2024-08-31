@@ -10,6 +10,7 @@ import CompanyInfo from "./pages/CompanyInfo";
 import ClientExelUpload from "./pages/ClientExelUpload";
 import ClientList from "./pages/ClientList";
 import ClientInfo from "./pages/ClientInfo";
+import CreateQuote from "./pages/CreateQuote";
 
 function App() {
   return (
@@ -48,6 +49,10 @@ function App() {
           <Route
             path="/5994c397-ba14-4595-a142-6ed2e76bb822"
             element={<Main children={<ClientInfo />} />}
+          />
+          <Route
+            path="/3f1877b4-93ed-4cd7-93bc-ea058bb34dff"
+            element={<Main children={<CreateQuote />} />}
           />
         </Routes>
       </BrowserRouter>

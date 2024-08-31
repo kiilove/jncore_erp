@@ -183,4 +183,12 @@ export const navigateMenus = [
     index: 420,
     level: 2,
   },
+  {
+    label: "견적서",
+    parentKey: "quote",
+    key: "quote",
+    link: "/3f1877b4-93ed-4cd7-93bc-ea058bb34dff",
+    index: 7,
+    level: 1,
+  },
 ];
