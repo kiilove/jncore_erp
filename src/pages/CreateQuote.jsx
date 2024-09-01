@@ -17,34 +17,48 @@ import CustomerInfoForm from "../components/createQuote/CustomerInfoForm";
 import ProductAddSection from "../components/createQuote/ProductAddSection";
 import SelectedProductsList from "../components/createQuote/SelectedProductsList";
 import { estimateTemplates } from "../commons/QuoteTemplate";
+import ClientAddSection from "../components/createQuote/ClientAddSection";
+import ProductSearchContent from "../components/createQuote/ProductSearchContent";
+import ClientSearchContent from "../components/createQuote/ClientSearchContent";
 
 const CreateQuote = () => {
   const [form] = Form.useForm();
   const location = useLocation();
   const searchInputRef = useRef(null);
   const searchStandardQuote = useFirestoreQuery();
+  const searchClients = useFirestoreQuery();
 
   const [standardQuotes, setStandardQuotes] = useState([]);
+  const [clients, setClients] = useState([]);
   const [productSearchResults, setProductSearchResults] = useState([]);
+  const [clientResults, setClientSearchResults] = useState([]);
   const [quoteItems, setQuoteItems] = useState([]);
+  const [clientItem, setClientItem] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [checkTax, setCheckTax] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [manualInput, setManualInput] = useState(false);
+  const [isProductModalVisible, setIsProductModalVisible] = useState(false);
+  const [isClientModalVisible, setIsClientModalVisible] = useState(false);
 
-  // 표준 견적 데이터 불러오기
+  // 고객사 정보 수동 입력 상태
+  const [customerManualInput, setCustomerManualInput] = useState(false);
+  // 제품 정보 수동 입력 상태
+  const [productManualInput, setProductManualInput] = useState(false);
+
+  const fetchQuotes = async () => {
+    try {
+      await searchStandardQuote.getDocuments("standard_quote", (data) => {
+        console.log(data);
+        setStandardQuotes(data);
+      });
+    } catch (error) {
+      message.error("데이터를 불러오는데 오류가 발생했습니다.");
+    }
+  };
+
+  // 기초 데이터 불러오기
   useEffect(() => {
-    const fetchQuotes = async () => {
-      try {
-        await searchStandardQuote.getDocuments("standard_quote", (data) => {
-          setStandardQuotes(data);
-        });
-      } catch (error) {
-        message.error("데이터를 불러오는데 오류가 발생했습니다.");
-      }
-    };
     fetchQuotes();
-  }, [searchStandardQuote]);
+  }, []);
 
   // 총 가격 계산
   useEffect(() => {
@@ -70,7 +84,14 @@ const CreateQuote = () => {
   // 제품 선택 핸들러
   const handleProductSelect = (product) => {
     setQuoteItems((prev) => [...prev, product]);
-    setIsModalVisible(false);
+    setIsProductModalVisible(false); // 제품 모달 닫기
+  };
+
+  // 제품 선택 핸들러
+  const handleClientSelect = (client) => {
+    //setQuoteItems((prev) => [...prev, product]);
+    setClientItem(() => ({ ...client }));
+    setIsClientModalVisible(false); // 제품 모달 닫기
   };
 
   // 폼 제출 핸들러
@@ -85,15 +106,21 @@ const CreateQuote = () => {
       <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
-            <CustomerInfoForm form={form} />
+            <ClientAddSection
+              form={form}
+            
+              manualInput={customerManualInput}
+              setManualInput={setCustomerManualInput}
+              showClientSearchModal={() => setIsClientModalVisible(true)}
+            />
           </Col>
 
           <Col span={12}>
             <ProductAddSection
               form={form}
-              manualInput={manualInput}
-              setManualInput={setManualInput}
-              showProductSearchModal={() => setIsModalVisible(true)}
+              manualInput={productManualInput}
+              setManualInput={setProductManualInput}
+              showProductSearchModal={() => setIsProductModalVisible(true)}
             />
           </Col>
         </Row>
@@ -126,31 +153,31 @@ const CreateQuote = () => {
       {/* 제품 검색 모달 */}
       <Modal
         title="제품 검색"
-        visible={isModalVisible}
+        visible={isProductModalVisible}
         onCancel={() => {
-          if (searchInputRef?.current) {
-            searchInputRef.current.input.value = "";
-          }
           setProductSearchResults([]);
-          setIsModalVisible(false);
+          setIsProductModalVisible(false);
         }}
         footer={null}
       >
-        <Input.Search
-          placeholder="제품명을 입력하세요"
-          ref={searchInputRef}
+        <ProductSearchContent
           onSearch={handleProductSearch}
-          style={{ marginBottom: 8 }}
+          onSelect={handleProductSelect}
+          searchResults={productSearchResults}
         />
-        <List
-          bordered
-          dataSource={productSearchResults}
-          renderItem={(product) => (
-            <List.Item onClick={() => handleProductSelect(product)}>
-              {product?.model?.value}
-            </List.Item>
-          )}
-        />
+      </Modal>
+
+      {/* 고객사 검색 모달 */}
+      <Modal
+        title="고객사 검색"
+        visible={isClientModalVisible}
+        onCancel={() => {
+          setIsClientModalVisible(false);
+          // 필요한 경우 모달이 닫힐 때의 추가 처리
+        }}
+        footer={null}
+      >
+        <ClientSearchContent handleClientSelect={handleClientSelect} />
       </Modal>
     </div>
   );
