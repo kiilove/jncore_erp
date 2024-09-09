@@ -1,4 +1,4 @@
-.a4-container {
+.a4-container2 {
   width: 210mm;
   min-height: 297mm;
   padding: 10mm;
@@ -6,4 +6,15 @@
   background: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
+}
+
+.a4-container {
+  width: 210mm; /* A4의 너비 */
+  height: auto; /* A4의 높이 */
+  margin: 0 auto; /* 중앙 정렬 */
+  overflow: hidden; /* 페이지 넘침 방지 */
+  padding: 10mm; /* 페이지 여백 */
+  box-sizing: border-box; /* 전체 크기 조절 */
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }

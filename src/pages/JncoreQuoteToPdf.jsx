@@ -6,7 +6,6 @@ import logo from "../assets/logo/jncore_logo.png";
 import "../styles/print.css";
 import { rawDataReduceObject } from "../utils/initializeTemplateFields";
 import { estimateTemplates } from "../commons/QuoteTemplate";
-import ReactToPrint from "react-to-print"; // react-to-print import
 
 const JncoreQuote = () => {
   const location = useLocation();
@@ -45,7 +44,7 @@ const JncoreQuote = () => {
 
   return (
     <div className="flex w-full h-full justify-center items-start ">
-      <div className="a4-container" ref={quoteRef}>
+      <div className="a4-container bg-red-200" ref={quoteRef}>
         <Row className="w-full mb-2">
           <Col span={6}>
             <div className="flex w-full h-full justify-center items-center">
@@ -194,10 +193,7 @@ const JncoreQuote = () => {
               <>
                 <Row
                   className="py-2"
-                  style={{
-                    height: "48px",
-                    color: "#002060",
-                  }}
+                  style={{ height: "42px", color: "#002060" }}
                 >
                   <Col span={1} className=" flex justify-center items-center">
                     <p>{pIdx + 1}</p>
@@ -271,12 +267,6 @@ const JncoreQuote = () => {
           })}
       </div>
       <Button onClick={handleExportPDF}>Export as PDF</Button>
-      {/* react-to-print를 사용하여 출력 버튼 추가 */}
-      <ReactToPrint
-        trigger={() => <Button>Export as PDF/Print</Button>} // 버튼을 누르면 출력 실행
-        content={() => quoteRef.current} // 출력할 컴포넌트 설정
-        pageStyle={`@page { margin: 1cm; }`} // 출력 스타일 설정
-      />
     </div>
   );
 };

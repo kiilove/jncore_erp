@@ -56,3 +56,19 @@ export const initializeTemplateFields = (
 
   return { mappedData, additionalFields, templateFields };
 };
+
+export const rawDataReduceObject = (product, estimateTemplates) => {
+  return Object.keys(product)
+    .filter((key) => product[key]?.value !== undefined) // Filters out keys with undefined values
+    .sort((a, b) => product[a].order - product[b].order) // Sort by order
+    .map((key, idx) => {
+      const { value } = product[key];
+      const label = estimateTemplates[product.타입]?.[key]?.ko || key; // Use a label from estimateTemplates or fallback to key
+      return {
+        key,
+        label, // The label based on the template
+        value, // The actual value of the product attribute
+        order: idx,
+      };
+    });
+};
