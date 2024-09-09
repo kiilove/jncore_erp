@@ -37,12 +37,29 @@ export const navigateMenus = [
   {
     label: "문서관리",
     parentKey: "home",
-    key: "assetDocument",
+    key: "documents",
     link: "",
-    index: 3,
+    index: 4,
     level: 1,
     icon: <IoDocumentTextOutline />,
   },
+  {
+    label: "견적서작성",
+    parentKey: "documents",
+    key: "sub72",
+    link: "/3f1877b4-93ed-4cd7-93bc-ea058bb34dff",
+    index: 72,
+    level: 2,
+  },
+  {
+    label: "견적서리스트",
+    parentKey: "documents",
+    key: "sub73",
+    link: "/46b24c26-798a-4e1c-9cdc-a6e1ab3ae39d",
+    index: 73,
+    level: 2,
+  },
+
   {
     label: "고객사관리",
     parentKey: "home",
@@ -182,13 +199,5 @@ export const navigateMenus = [
     link: "",
     index: 420,
     level: 2,
-  },
-  {
-    label: "견적서",
-    parentKey: "quote",
-    key: "quote",
-    link: "/3f1877b4-93ed-4cd7-93bc-ea058bb34dff",
-    index: 7,
-    level: 1,
   },
 ];

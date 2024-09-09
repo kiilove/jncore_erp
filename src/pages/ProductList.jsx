@@ -99,16 +99,39 @@ const ProductList = () => {
     setFilteredProducts(filtered);
   };
 
-  const handleNavigate = (product, isEdit = false, quoteId = null) => {
-    navigate("/8e4314e1-ec72-47b5-84e2-114a5e7a697a", {
-      state: {
-        id: product.id,
-        modelName: product.모델명,
-        description: products.filter((f) => f.id === product.id),
-        isEdit,
-        quoteId,
-      },
-    });
+  const handleNavigate = (
+    linkType = "standard_quote",
+    product,
+    isEdit = false,
+    quoteId = null
+  ) => {
+    switch (linkType) {
+      case "standard_quote":
+        navigate("/8e4314e1-ec72-47b5-84e2-114a5e7a697a", {
+          state: {
+            id: product.id,
+            modelName: product.모델명,
+            description: products.filter((f) => f.id === product.id),
+            isEdit,
+            quoteId,
+          },
+        });
+        break;
+      case "create_quote":
+        navigate("/3f1877b4-93ed-4cd7-93bc-ea058bb34dff", {
+          state: {
+            id: product.id,
+            product,
+            description: products.filter((f) => f.id === product.id),
+            isEdit,
+            quoteId,
+          },
+        });
+        break;
+
+      default:
+        break;
+    }
   };
 
   if (loading) {
@@ -161,6 +184,7 @@ const ProductList = () => {
           const existingQuote = standardQuote.find(
             (quote) => quote.refProductId === product.id
           );
+          console.log(existingQuote);
           return (
             <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
               <Card
@@ -192,17 +216,30 @@ const ProductList = () => {
                     <>
                       <Button
                         onClick={() =>
-                          handleNavigate(product, true, existingQuote.id)
+                          handleNavigate(
+                            "standard_quote",
+                            product,
+                            true,
+                            existingQuote.id
+                          )
                         }
                       >
                         대표견적 수정
                       </Button>
-                      <Button onClick={() => handleNavigate(product, false)}>
+                      <Button
+                        onClick={() =>
+                          handleNavigate("create_quote", existingQuote, false)
+                        }
+                      >
                         견적서 만들기
                       </Button>
                     </>
                   ) : (
-                    <Button onClick={() => handleNavigate(product, false)}>
+                    <Button
+                      onClick={() =>
+                        handleNavigate("standard_quote", product, false)
+                      }
+                    >
                       대표견적 만들기
                     </Button>
                   ),

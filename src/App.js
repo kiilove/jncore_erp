@@ -11,6 +11,9 @@ import ClientExelUpload from "./pages/ClientExelUpload";
 import ClientList from "./pages/ClientList";
 import ClientInfo from "./pages/ClientInfo";
 import CreateQuote from "./pages/CreateQuote";
+import QuoteList from "./pages/QuoteList";
+import ViewQuote from "./pages/ViewQuote";
+import JncoreQuote from "./pages/JncoreQuote";
 
 function App() {
   return (
@@ -51,8 +54,16 @@ function App() {
             element={<Main children={<ClientInfo />} />}
           />
           <Route
+            path="/46b24c26-798a-4e1c-9cdc-a6e1ab3ae39d"
+            element={<Main children={<QuoteList />} />}
+          />
+          <Route
             path="/3f1877b4-93ed-4cd7-93bc-ea058bb34dff"
             element={<Main children={<CreateQuote />} />}
+          />
+          <Route
+            path="/6002bd8f-b3c1-48c7-a70b-e6052b446515"
+            element={<Main children={<JncoreQuote />} />}
           />
         </Routes>
       </BrowserRouter>

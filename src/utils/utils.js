@@ -28,3 +28,9 @@ export const adjustModelName = (searchModelName, realModelName) => {
   }
   return { brand: "", model: searchModelName };
 };
+
+export const sanitizeCompanyName = (name) => {
+  return name
+    .replace(/^\s*\(?(주|유|사|합|협|재|재단|비영리|학교|병원|의료법인)\)?/, "")
+    .trim();
+};

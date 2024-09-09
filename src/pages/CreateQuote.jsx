@@ -12,15 +12,18 @@ import {
   DatePicker,
 } from "antd";
 import dayjs from "dayjs";
+import { useLocation } from "react-router-dom";
 import { useFirestoreAddData, useFirestoreQuery } from "../hooks/useFirestore";
 import ProductAddSection from "../components/createQuote/ProductAddSection";
 import SelectedProductsList from "../components/createQuote/SelectedProductsList";
 import ClientAddSection from "../components/createQuote/ClientAddSection";
 import ProductSearchContent from "../components/createQuote/ProductSearchContent";
 import ClientSearchContent from "../components/createQuote/ClientSearchContent";
+import { sanitizeCompanyName } from "../utils/utils";
 
 const CreateQuote = () => {
   const [form] = Form.useForm();
+  const location = useLocation(); // useLocation 훅 사용
   const searchStandardQuote = useFirestoreQuery();
   const addQuote = useFirestoreAddData();
   const [standardQuotes, setStandardQuotes] = useState([]);
@@ -45,11 +48,19 @@ const CreateQuote = () => {
     }
   };
 
-  // 견적 템플릿 데이터 불러오기
+  // 견적 템플릿 데이터 불러오기 및 문서번호 생성
   useEffect(() => {
     fetchQuotes();
     generateQuoteNumber(dayjs()); // 처음 렌더링 시 오늘 날짜로 문서번호 생성
   }, []);
+
+  // location state로 받은 product가 있는 경우, quoteItems에 자동 추가
+  useEffect(() => {
+    if (location.state?.product) {
+      const newProduct = { ...location.state.product, amount: 1 }; // 수량을 1로 설정
+      setQuoteItems([{ ...newProduct }]); // product를 quoteItems에 추가
+    }
+  }, [location.state]);
 
   // 총 가격 및 부가세 계산 함수
   useEffect(() => {
@@ -134,10 +145,34 @@ const CreateQuote = () => {
   };
 
   const addData = async (value) => {
+    // Sanitize company name
+    const sanitizedBusinessName = sanitizeCompanyName(
+      value.client.company.거래처상호
+    );
+
+    // Prepare 검색어_간단 by combining relevant fields
+    const simpleSearchTerm = [
+      sanitizedBusinessName,
+      value.personName,
+      value.personTel,
+      value.personEmail,
+      value.quoteDate,
+      value.quoteNumber,
+      ...value.quoteItems.map((item) => item.model.value), // Extract model values
+    ].join(" "); // Join all terms with a space
+
+    // Extend the submit data with 검색어_간단 and person details
+    const extendedData = {
+      ...value,
+      검색어_간단: simpleSearchTerm,
+      personName: value.personName,
+      personTel: value.personTel || value.client.person.전화번호,
+      personEmail: value.personEmail || value.client.person.이메일,
+    };
     try {
-      await addQuote.addData("quotes", value, () => {
+      await addQuote.addData("quotes", extendedData, () => {
         message.success("견적서가 성공적으로 제출되었습니다.");
-        console.log("제출 데이터:", value);
+        console.log("제출 데이터:", extendedData);
       });
     } catch (error) {
       message.success("견적서 제출에 실패했습니다.");
