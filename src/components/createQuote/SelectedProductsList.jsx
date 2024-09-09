@@ -22,7 +22,8 @@ const SelectedProductsList = ({ quoteItems, setQuoteItems }) => {
                 .sort((a, b) => product[a].order - product[b].order)
                 .map((key, kIdx) => {
                   const { value } = product[key];
-                  const label = estimateTemplates[product.타입][key]?.ko || key;
+                  const label =
+                    estimateTemplates[product.타입]?.[key]?.ko || key;
 
                   if (key === "model" || key === "price") return null;
 
@@ -47,7 +48,7 @@ const SelectedProductsList = ({ quoteItems, setQuoteItems }) => {
                     defaultValue={1}
                     onChange={(e) => {
                       const newProduct = { ...quoteItems[index] };
-                      newProduct.amount = e.target.value;
+                      newProduct.amount = parseInt(e.target.value);
 
                       const newQuoteItems = [...quoteItems];
                       newQuoteItems.splice(index, 1, newProduct);
