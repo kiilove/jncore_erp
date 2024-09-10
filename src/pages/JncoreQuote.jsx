@@ -8,6 +8,7 @@ import { rawDataReduceObject } from "../utils/initializeTemplateFields";
 import { estimateTemplates } from "../commons/QuoteTemplate";
 import ReactToPrint from "react-to-print";
 import { useEffect } from "react";
+import dayjs from "dayjs";
 
 const JncoreQuote = () => {
   const [model, setModel] = useState("UnnamedModel");
@@ -27,7 +28,10 @@ const JncoreQuote = () => {
   }
 
   const values = rawDataReduceObject(quote.quoteItems[0], estimateTemplates);
-
+  // quoteDate에 7일을 더한 유효기간 계산
+  const expiryDate = quote?.quoteDate
+    ? dayjs(quote.quoteDate).add(7, "day").format("YYYY-MM-DD")
+    : "견적일자확인";
   // 파일 이름 생성 함수 (인자값으로 모델명을 받아서 처리)
   const getFileName = (model) => {
     const businessName = quote.businessName || "UnnamedBusiness";
@@ -303,7 +307,112 @@ const JncoreQuote = () => {
               </>
             );
           })}
+        <div className="flex w-full h-full mt-5">
+          <div className="flex flex-1"></div>
+          <div
+            className="flex flex-1 flex-col justify-end items-center"
+            style={{ border: "1px solid #BDD7EE" }}
+          >
+            <Row
+              className="w-full"
+              style={{
+                backgroundColor: "#f2f2f2",
+                height: "25px",
+                color: "#002060",
+              }}
+            >
+              <Col span={12} className="flex justify-center items-center">
+                <p style={{ letterSpacing: 5 }}>공급가액</p>
+              </Col>
+              <Col span={12} className="flex justify-end items-center">
+                <p className="pr-5">
+                  {quote?.includeTax
+                    ? parseInt(quote?.totalPrice / 1.1)?.toLocaleString() || 0
+                    : quote?.totalPrice?.toLocaleString() || 0}
+                </p>
+              </Col>
+            </Row>
+            <Row
+              className="w-full"
+              style={{
+                backgroundColor: "#f2f2f2",
+                height: "25px",
+                color: "#002060",
+              }}
+            >
+              <Col span={12} className="flex justify-center items-center">
+                <p>부가가치세</p>
+              </Col>
+              <Col span={12} className="flex justify-end items-center">
+                <p className="pr-5">
+                  {quote?.includeTax
+                    ? quote?.totalPrice -
+                        parseInt(quote?.totalPrice / 1.1)?.toLocaleString() || 0
+                    : parseInt(quote?.totalPrice * 0.1).toLocaleString() || 0}
+                </p>
+              </Col>
+            </Row>{" "}
+            <Row
+              className="w-full"
+              style={{
+                backgroundColor: "#BDD7EE",
+                height: "35px",
+                color: "#002060",
+              }}
+            >
+              <Col span={12} className="flex justify-center items-center">
+                <p
+                  className="font-bold"
+                  style={{ letterSpacing: 5, fontSize: 15 }}
+                >
+                  합계금액
+                </p>
+              </Col>
+              <Col span={12} className="flex justify-end items-center">
+                <p className="font-bold pr-5" style={{ fontSize: 15 }}>
+                  {quote?.includeTax
+                    ? quote?.totalPrice -
+                        parseInt(quote?.totalPrice)?.toLocaleString() || 0
+                    : parseInt(quote?.totalPrice * 1.1).toLocaleString() || 0}
+                </p>
+              </Col>
+            </Row>
+          </div>
+        </div>
+        <div className="flex w-full h-full mt-5" style={{ height: "130px" }}>
+          <Row className="w-full border">
+            <Col span={14}>
+              <div className="flex flex-col w-full p-3">
+                <div className="flex w-full">
+                  <p style={{ fontSize: 13 }}>유효기간: {expiryDate}</p>
+                </div>
+                <div className="flex">
+                  <p style={{ fontSize: 13 }}>
+                    위 견적은 납품즉시 현금 결제를 원칙으로 합니다.
+                  </p>
+                </div>
+                <div className="flex">
+                  <p style={{ fontSize: 13 }}>
+                    제품 특성상 박스 개봉후에는 반품 및 교환이 불가능합니다.
+                  </p>
+                </div>
+                <div className="flex">
+                  <p style={{ fontSize: 13 }}>(단, 제품 하자시 제외)</p>
+                </div>
+              </div>
+            </Col>
+            <Col span={10} className="p-2">
+              <div
+                className="flex w-full justify-center items-center "
+                style={{ border: "2px solid #002060", height: "25px" }}
+              >
+                <p style={{ fontSize: 13 }}>고객사 발주 확인(명판 날인)</p>
+              </div>
+            </Col>
+          </Row>
+        </div>
       </div>
+
       <Button onClick={handleExportPDF}>Export as PDF</Button>
       {/* react-to-print를 사용하여 출력 버튼 추가 */}
       <ReactToPrint
