@@ -36,17 +36,34 @@ const ProductAddSection = ({ showProductSearchModal, handleProductSelect }) => {
 
   // 필드 값 처리
   const handleFieldChange = (key, value, isManual = false) => {
-    const order = key === "model" ? 1 : Object.keys(formattedValues).length + 1;
-    setFormattedValues((prevValues) => ({
-      ...prevValues,
-      [key]: { value, order },
-    }));
+    if (key === "타입") {
+      // '타입' key는 특별 처리
+      setFormattedValues((prevValues) => ({
+        ...prevValues,
+        [key]: value, // '타입'은 value만 저장
+      }));
 
-    if (isManual) {
-      setCustomProduct((prevProduct) => ({
-        ...prevProduct,
+      if (isManual) {
+        setCustomProduct((prevProduct) => ({
+          ...prevProduct,
+          [key]: value, // 수동 입력 시도 동일하게 처리
+        }));
+      }
+    } else {
+      // '타입'이 아닌 경우 일반적인 처리
+      const order =
+        key === "model" ? 1 : Object.keys(formattedValues).length + 1;
+      setFormattedValues((prevValues) => ({
+        ...prevValues,
         [key]: { value, order },
       }));
+
+      if (isManual) {
+        setCustomProduct((prevProduct) => ({
+          ...prevProduct,
+          [key]: { value, order },
+        }));
+      }
     }
   };
 
